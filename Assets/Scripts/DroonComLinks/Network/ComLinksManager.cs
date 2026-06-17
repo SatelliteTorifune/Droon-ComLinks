@@ -320,8 +320,9 @@ namespace Assets.Scripts.DroonComLinks.Network
 
                     //if (id != "FlightControlsUpdate" && id != "LockHeading") Debug.Log("[ComRequest] type: " + id + " needs power: " + needsPower);
                     if (PlayerHasDroonControl) return true;
-                    if (PlayerHasRemoteControl && ModSettings.Instance.NeedPower)
+                    if (PlayerHasRemoteControl)
                     {
+                        if (!ModSettings.Instance.NeedPower) return true;
                         double comPowerConsumption = 0;
                         if (needsPower)
                         {

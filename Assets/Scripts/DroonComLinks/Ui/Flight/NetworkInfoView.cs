@@ -17,9 +17,30 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
         private Dictionary<string, DCLSphere> _spheres = new();
         private DCLSphere _hoveredSphere = null;
         public NetworkNode SelectedNode { get; private set; }
-        private ItemVisibilityModel ItemVisibilityModel => Traverse.Create((MapViewInspectorScript)Game.Instance.FlightScene.ViewManager.MapViewManager.MapView.MapViewInspector).Field("_itemVisibilityModel").GetValue<ItemVisibilityModel>();
-        private MapItemDataDefaults CraftDefaults => Traverse.Create(ItemVisibilityModel).Field("_craftDefaults").GetValue<MapItemDataDefaults>();
-        private MapItemDataDefaults StructureDefaults => Traverse.Create(ItemVisibilityModel).Field("_structureDefaults").GetValue<MapItemDataDefaults>();
+        private ItemVisibilityModel ItemVisibilityModel {
+            get {
+                try {
+                    var result = Traverse.Create((MapViewInspectorScript)Game.Instance.FlightScene.ViewManager.MapViewManager.MapView.MapViewInspector).Field("_itemVisibilityModel").GetValue<ItemVisibilityModel>();
+                    Mod.Log($"[ItemVisibilityModel GET] result is null: {result == null}");
+                    return result;
+                } catch (System.Exception ex) {
+                    Mod.Log($"[ItemVisibilityModel GET] EXCEPTION: {ex.Message}");
+                    return null;
+                }
+            }
+        }
+        private MapItemDataDefaults CraftDefaults {
+            get {
+                Mod.Log($"[CraftDefaults GET] ItemVisibilityModel null: {ItemVisibilityModel == null}");
+                return Traverse.Create(ItemVisibilityModel).Field("_craftDefaults").GetValue<MapItemDataDefaults>();
+            }
+        }
+        private MapItemDataDefaults StructureDefaults {
+            get {
+                Mod.Log($"[StructureDefaults GET] ItemVisibilityModel null: {ItemVisibilityModel == null}");
+                return Traverse.Create(ItemVisibilityModel).Field("_structureDefaults").GetValue<MapItemDataDefaults>();
+            }
+        }
         private float _markerScale = 1;
         public bool infoViewActive = false;
         private bool showNodeMarkers = true, connectionMarkers = true;
@@ -35,13 +56,15 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
 
         private void OnNetworkNodesUpdated()
         {
+            Mod.Log($"[OnNetworkNodesUpdated] SelectedNode before check: {(SelectedNode == null ? "null" : SelectedNode.id)}");
             try { SelectedNode.id.ToString(); }
-            catch { SelectedNode = null; }
+            catch { Mod.Log($"[OnNetworkNodesUpdated] SelectedNode invalid — setting null"); SelectedNode = null; }
             RefreshNetworkInfoPanel();
         }
 
         public void RefreshNetworkInfoPanel()
         {
+            Mod.Log($"[RefreshNetworkInfoPanel] InspectoPpanelOpen={InspectoPpanelOpen}, infoViewActive={infoViewActive}");
             if (!InspectoPpanelOpen) return;
             CloseInfoView();
             OnToggleNetworkInfoPanel();
@@ -55,13 +78,18 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
 
         public void OnToggleNetworkInfoPanel()
         {
+            Mod.Log($"[OnToggleNetworkInfoPanel] InspectoPpanelOpen={InspectoPpanelOpen}, infoViewActive={infoViewActive}, NodeSelected={NodeSelected}");
+
             if (InspectoPpanelOpen)
             {
+                Mod.Log("[OnToggleNetworkInfoPanel] Panel is open — closing...");
                 ToggleInfoView(false);
                 CloseInfoView();
+                Mod.Log("[OnToggleNetworkInfoPanel] Closed.");
                 return;
             }
 
+            Mod.Log("[OnToggleNetworkInfoPanel] Creating new inspector panel...");
             InspectorPanelCreationInfo inspectorPanelCreationInfo = new()
             {
                 StartPosition = InspectorPanelCreationInfo.InspectorStartPosition.UpperRight,
@@ -75,7 +103,9 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
             if (NodeSelected) SelectedNode.CreateInfoPanel(inspectorModel);
             if (ModSettings.Instance.DebugMode) CreateDebugPanel(inspectorModel);
 
+            Mod.Log("[OnToggleNetworkInfoPanel] Calling CreateInspectorPanel...");
             _inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, inspectorPanelCreationInfo);
+            Mod.Log($"[OnToggleNetworkInfoPanel] Panel created: {_inspectorPanel != null}");
             _inspectorPanel.CloseButtonClicked += (IInspectorPanel panel) => OnToggleNetworkInfoPanel();
         }
 
@@ -191,21 +221,59 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
 
         private void ToggleInfoView(bool active)
         {
+            Mod.Log($"[ToggleInfoView] Called with active={active}");
+            Mod.Log($"[ToggleInfoView] infoViewActive was: {infoViewActive}");
+
             infoViewActive = active;
 
             if (active)
             {
-                craftIconVisible = CraftDefaults.ShowIcons;
-                structureIconVisible = StructureDefaults.ShowIcons;
-                CraftDefaults.ShowIcons = false;
-                StructureDefaults.ShowIcons = false;
+                try
+                {
+                    var ivm = ItemVisibilityModel;
+                    Mod.Log($"[ToggleInfoView active] ItemVisibilityModel null: {ivm == null}");
+                    if (ivm == null) { Mod.Log("[ToggleInfoView active] ABORT: ItemVisibilityModel is null"); return; }
+
+                    var craft = CraftDefaults;
+                    var struct_ = StructureDefaults;
+                    Mod.Log($"[ToggleInfoView active] CraftDefaults null: {craft == null}, StructureDefaults null: {struct_ == null}");
+                    if (craft == null || struct_ == null) { Mod.Log("[ToggleInfoView active] ABORT: defaults null"); return; }
+
+                    craftIconVisible = craft.ShowIcons;
+                    structureIconVisible = struct_.ShowIcons;
+                    craft.ShowIcons = false;
+                    struct_.ShowIcons = false;
+
+                    Mod.Log($"[ToggleInfoView active] Craft.ShowIcons now={craft.ShowIcons}, Struct.ShowIcons now={struct_.ShowIcons}");
+                }
+                catch (System.Exception ex)
+                {
+                    Mod.Log($"[ToggleInfoView active] EXCEPTION: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                }
             }
             else
             {
-                CraftDefaults.ShowIcons = craftIconVisible;
-                StructureDefaults.ShowIcons = structureIconVisible;
-                SelectedNode = null;
+                try
+                {
+                    var ivm = ItemVisibilityModel;
+                    Mod.Log($"[ToggleInfoView inactive] ItemVisibilityModel null: {ivm == null}");
+                    if (ivm == null) { Mod.Log("[ToggleInfoView inactive] ABORT: ItemVisibilityModel is null"); SelectedNode = null; return; }
+
+                    var craft = CraftDefaults;
+                    var struct_ = StructureDefaults;
+                    Mod.Log($"[ToggleInfoView inactive] CraftDefaults null: {craft == null}, StructureDefaults null: {struct_ == null}, craftIconVisible={craftIconVisible}, structureIconVisible={structureIconVisible}");
+
+                    if (craft != null) craft.ShowIcons = craftIconVisible;
+                    if (struct_ != null) struct_.ShowIcons = structureIconVisible;
+                    Mod.Log($"[ToggleInfoView inactive] SelectedNode before = {(SelectedNode == null ? "null" : SelectedNode.id)}");
+                    SelectedNode = null;
+                }
+                catch (System.Exception ex)
+                {
+                    Mod.Log($"[ToggleInfoView inactive] EXCEPTION: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                }
             }
+            Mod.Log($"[ToggleInfoView] Done. infoViewActive now = {infoViewActive}");
         }
 
         public void Update()
@@ -251,6 +319,7 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
 
         public void Close()
         {
+            Mod.Log($"[Close] infoViewActive={infoViewActive}, _spheres.Count={_spheres.Count}");
             ToggleInfoView(false);
             DestroySpheres();
         }

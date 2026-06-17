@@ -112,8 +112,6 @@ namespace Assets.Scripts.DroonComLinks.Network
         {
             nodesInDirectRangeReport = "Nodes in direct range repport ----- [" + id + "] ----- Target count [" + _comLinksManager.NetworkNodes.Count + "]\n";
 
-            if (ModSettings.Instance.NeedPower && Battery < ComLinksManager.minPower) return;
-
             foreach (NetworkNode target in _comLinksManager.NetworkNodes)
             {
                 ConnectionInfo c = CheckConnectionWith(target);
@@ -139,7 +137,6 @@ namespace Assets.Scripts.DroonComLinks.Network
             if (InrangeNodeFromId.ContainsKey(target.id)) return new ConnectionInfo(ConnectionResults.Duplicate);
             if (!IsCraft && !target.IsCraft) return new ConnectionInfo(ConnectionResults.GS2GS);
             if (target.id == this.id) return new ConnectionInfo(ConnectionResults.ToSelf);
-            if (ModSettings.Instance.NeedPower && target.Battery < ComLinksManager.minPower) return new ConnectionInfo(ConnectionResults.MissingBattery);
             if (DCLUtilities.ConnectionObstructed(Position, target.Position)) return new ConnectionInfo(ConnectionResults.Obstructed);
 
             SignalInfoResults signalInforesult = AntennaMath.GetSignalInfo(this, target, out Antenna A, out Antenna B, out float signalStrength, out float waveLength, out double distance, out List<SignalStrengthResults> signalStrengthResults);

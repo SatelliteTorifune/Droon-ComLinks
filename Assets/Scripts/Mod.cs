@@ -1,5 +1,7 @@
 //The mod uses Harmony https://github.com/pardeike/Harmony Copyright (c) 2017 Andreas Pardeike
 
+using System;
+
 namespace Assets.Scripts
 {
     using System.Collections.Generic;
@@ -125,13 +127,16 @@ namespace Assets.Scripts
 
             var textButtonModel = new TextButtonModel("Open Status Panel", b => DCLUIManager.OnOpenControlPanelButtonClicked());
             g.Add(textButtonModel);
+
+            var textButtonModel2 = new TextButtonModel("Open Network Manager", b => DCLUIManager.OnOpenNetworkInfoButtonClicked());
+            g.Add(textButtonModel2);
         }
 
         private void OnBuildMapViewInspectorPanel(BuildInspectorPanelRequest request)
         {
             GroupModel g = new("Droon ComLinks");
             request.Model.AddGroup(g);
-            g.Collapsed = true;
+            g.Collapsed = true;  
 
             TextButtonModel textButtonModel2 = new("Open Network Manager", b => DCLUIManager.OnOpenNetworkInfoButtonClicked());
             g.Add(textButtonModel2);
@@ -149,6 +154,47 @@ namespace Assets.Scripts
             }
             frequencyColors.Add(frequency, newColor);
             return newColor;
+        }
+
+        public static void Log(object message)
+        {
+            if (ModSettings.Instance.DebugMode)
+            {
+                Debug.unityLogger.Log(message);
+            }
+        }
+
+        public static void Log(string format, params object[] args)
+        {
+            if (ModSettings.Instance.DebugMode)
+            {
+                Debug.unityLogger.LogFormat(LogType.Log, format, args);
+            }
+        }
+
+        public static void LogWarning(string format, params object[] args)
+        {
+            if (ModSettings.Instance.DebugMode)
+            {
+                Debug.unityLogger.LogFormat(LogType.Log, format, args);
+            }
+        }
+
+        public static void LogError(string format, params object[] args)
+        {
+            if (ModSettings.Instance.DebugMode)
+            {
+                Debug.unityLogger.LogFormat(LogType.Log, format, args);
+                Debug.LogFormat(Environment.StackTrace);
+            }
+        }
+
+        public static void Log(UnityEngine.Object context, string format, params object[] args)
+        {
+            if (ModSettings.Instance.DebugMode)
+            {
+                Debug.unityLogger.LogFormat(LogType.Log, context, format, args);
+            }
         }
     }
 }

@@ -25,8 +25,8 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
         private List<string> NetworkConnections => ComLinksManager.NetworkConnections.Select(c => c.id).ToList();
         private bool _playerHasDroonControl;
         private bool _playerHasRemoteControl;
-        private readonly bool reducedStatusPanelOpen;
-        private readonly bool statusPanelOpen;
+        private bool reducedStatusPanelOpen;
+        private bool statusPanelOpen;
         private readonly bool inputs;
         private bool uiActive;
         public bool infoViewActive;
@@ -218,10 +218,10 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
 
         public void OnToggleNetworkStatus()
         {
-            // statusPanelOpen = !statusPanelOpen;
-            // UpdateUI();
+            statusPanelOpen = !statusPanelOpen;
+            UpdateUI();
 
-            DCLUIManager.OnOpenNetworkInfoButtonClicked();
+            // DCLUIManager.OnOpenNetworkInfoButtonClicked();
             // _networkMangerDialogScript = (Instantiate(Resources.Load("Ui/Prefabs/Dialog")) as GameObject).AddComponent<NetworkManagerDialog>();
             // _networkMangerDialogScript.Initialize();
             // _networkMangerDialogScript.transform.SetParent(transform, worldPositionStays: false);
