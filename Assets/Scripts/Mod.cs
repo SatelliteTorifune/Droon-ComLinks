@@ -46,7 +46,7 @@ namespace Assets.Scripts
         public Color defaultLineColor = new(0.30f, 0.75f, 0.40f);
         public Color[] defaultLineColors = new Color[2] { new(0f, 0.35f, 0.75f), new(0.8f, 0.8f, 0.2f) };
         public LineColorModes lineColorMode = LineColorModes.Default;
-        public DrawModes drawMode = DrawModes.GsPaths;
+        public DrawModes drawMode = DrawModes.GsPath;
         private Mod() : base() { }
         public static Mod Instance { get; } = GetModInstance<Mod>();
         public double minStrength = float.PositiveInfinity;
