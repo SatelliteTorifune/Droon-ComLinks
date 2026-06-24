@@ -40,7 +40,7 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
         private float _markerScale = 1;
         public bool infoViewActive = false;
         private bool showNodeMarkers = true, connectionMarkers = true;
-        private bool craftIconVisible, structureIconVisible;
+        //private bool craftIconVisible, structureIconVisible;
         public bool InspectoPpanelOpen => _inspectorPanel != null;
         public bool NodeSelected => SelectedNode != null;
         private bool SphereHovered => _hoveredSphere != null;
@@ -222,10 +222,9 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
                     var struct_ = StructureDefaults;
                     if (craft == null || struct_ == null) { Mod.Log("[ToggleInfoView active] ABORT: defaults null"); return; }
 
-                    craftIconVisible = craft.ShowIcons;
-                    structureIconVisible = struct_.ShowIcons;
-                    craft.ShowIcons = false;
-                    struct_.ShowIcons = false;
+                    //craftIconVisible = craft.ShowIcons;
+                    //structureIconVisible = struct_.ShowIcons;
+                 
                     
                 }
                 catch (System.Exception ex)
@@ -242,8 +241,8 @@ namespace Assets.Scripts.DroonComLinks.Ui.Flight
                     var craft = CraftDefaults;
                     var struct_ = StructureDefaults;
 
-                    if (craft != null) craft.ShowIcons = craftIconVisible;
-                    if (struct_ != null) struct_.ShowIcons = structureIconVisible;
+                    if (craft != null)craft.ShowIcons = true;
+                    //if (struct_ != null)struct_.ShowIcons = structureIconVisible;
                     SelectedNode = null;
                 }
                 catch (System.Exception ex)
