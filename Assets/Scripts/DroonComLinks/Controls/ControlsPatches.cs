@@ -2,9 +2,6 @@ using HarmonyLib;
 using Assets.Scripts.Flight;
 using Assets.Scripts.Flight.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
 using Assets.Scripts.Craft.Parts;
 using ModApi.Craft.Parts;
@@ -31,14 +28,6 @@ namespace Assets.Scripts.DroonComLinks.Controls
         }
 
         public static bool RegisterExternalCommand(string id, bool needsPower = true) => ComLinksManager.Instance.ManageComRequest(id, needsPower);
-
-        public static bool ShouldBlockPlayerInput()
-        {
-            return ModSettings.Instance.BlockControls && !ComLinksManager.Instance.PlayerHasControl;
-        }
-
-        // 用于在 Prefix 和 Postfix 之间传递状态的静态变量
-        internal static CraftControlsState? _savedControlsState = null;
     }
 
     [HarmonyPatch(typeof(InputSliderScript), "UpdateHandlePosition")]
@@ -46,6 +35,18 @@ namespace Assets.Scripts.DroonComLinks.Controls
     {
         static bool Prefix() => ControlsPatches.RegisterExternalCommand("UpdateHandlePosition", needsPower: false);
     }
+
+    // [HarmonyPatch(typeof(NavSphereScript), nameof(NavSphereScript.LockHeading), new Type[] { typeof(float), typeof(float) })]
+    // class NavSphereScriptLockHeadingfPatch1
+    // {
+    //     static bool Prefix() => ControlsPatches.RegisterExternalCommand("LockHeading", needsPower: false);
+    // }
+
+    // [HarmonyPatch(typeof(NavSphereScript), nameof(NavSphereScript.LockHeading), new Type[] { typeof(Vector3d) })]
+    // class NavSphereScriptLockHeadingfPatch2
+    // {
+    //     static bool Prefix() => ControlsPatches.RegisterExternalCommand("LockHeading", needsPower: false);
+    // }
 
     [HarmonyPatch(typeof(NavSphereScript), nameof(NavSphereScript.UnlockHeading))]
     class NavSphereScriptUnlockHeadingfPatch
@@ -124,13 +125,16 @@ namespace Assets.Scripts.DroonComLinks.Controls
     {
         static void Postfix(IGroupModel group, bool flightScene, FuelTankScript __instance)
         {
+            // Debug.Log("Instepctor Created for part " + __instance.PartScript.Data.Id);
             ManageGroup(group, __instance);
         }
 
         private static void ManageGroup(IGroupModel group, FuelTankScript instance)
         {
+            // Debug.Log("Group " + group.Name);
             foreach (ItemModel item in group.Items)
             {
+                // Debug.Log(" - item, type: " + item.GetType());
                 if (item is IGroupModel) ManageGroup((IGroupModel)item, instance);
                 if (item is IconButtonRowModel)
                 {
@@ -138,6 +142,7 @@ namespace Assets.Scripts.DroonComLinks.Controls
 
                     foreach (IconButtonModel button in buttonRow.Buttons)
                     {
+                        // Debug.Log("     - Button " + button.Sprite);
                         bool flag = false;
                         FuelTransferMode fuelTransferMode = FuelTransferMode.None;
                         if (button.Sprite == "Ui/Sprites/Flight/IconFuelTransferDrain")
@@ -166,6 +171,7 @@ namespace Assets.Scripts.DroonComLinks.Controls
                                     }
                                     else instance.FuelTransferMode = fuelTransferMode;
                             });
+                            // Debug.Log("         - Patched " + button.Sprite);
                         }
                     }
                 }
@@ -173,22 +179,11 @@ namespace Assets.Scripts.DroonComLinks.Controls
         }
     }
 
-    // ============================================================================
-    // 飞行控制 Patch
-    // ============================================================================
-
-    // 完全阻止控制 (原有行为) - 当 BlockPlayerInputOnly = false 时使用
     [HarmonyPatch(typeof(FlightControls), nameof(FlightControls.Update))]
     class FlightControlsPatch
     {
         static bool Prefix(float timeStep, FlightControls __instance, ref CraftNode ____craftNode, ref INavSphere ____navSphere, FlightSceneScript ____flightScene, ref float ____throttleIncrement)
         {
-            // 如果启用了 "仅阻止玩家输入" 模式，则跳过此 Patch
-            if (ModSettings.Instance.BlockPlayerInputOnly)
-            {
-                return true;
-            }
-
             if (!ControlsPatches.RegisterExternalCommand("FlightControlsUpdate", needsPower: false)) return false;
 
             if (____craftNode == null || Game.Instance.UserInterface.AnyDialogsOpen || Game.Instance.UserInterface.IsTextInputFocused)
@@ -502,79 +497,5 @@ namespace Assets.Scripts.DroonComLinks.Controls
             }
             return false;
         }
-    }
-
-    // 仅阻止玩家输入模式 - 使用 Prefix/Postfix 保存和恢复 Vizzy 的输入
-    [HarmonyPatch(typeof(FlightControls), nameof(FlightControls.Update))]
-    class FlightControlsPlayerInputOnlyPatch
-    {
-        static void Prefix(FlightControls __instance)
-        {
-            // 只有在启用了 "仅阻止玩家输入" 模式且应该阻止时才执行
-            if (!ModSettings.Instance.BlockPlayerInputOnly || !ControlsPatches.ShouldBlockPlayerInput())
-            {
-                ControlsPatches._savedControlsState = null;
-                return;
-            }
-
-            // 保存当前状态（Vizzy 可能已设置）
-            ControlsPatches._savedControlsState = new CraftControlsState
-            {
-                Throttle = __instance.Controls.Throttle,
-                Pitch = __instance.Controls.Pitch,
-                Roll = __instance.Controls.Roll,
-                Yaw = __instance.Controls.Yaw,
-                Brake = __instance.Controls.Brake,
-                TranslateUp = __instance.Controls.TranslateUp,
-                TranslateRight = __instance.Controls.TranslateRight,
-                TranslateForward = __instance.Controls.TranslateForward,
-                Slider1 = __instance.Controls.Slider1,
-                Slider2 = __instance.Controls.Slider2,
-                Slider3 = __instance.Controls.Slider3,
-                Slider4 = __instance.Controls.Slider4
-            };
-        }
-
-        static void Postfix(FlightControls __instance)
-        {
-            // 只有在启用了 "仅阻止玩家输入" 模式且有保存状态时才执行
-            if (ControlsPatches._savedControlsState == null) return;
-
-            var state = ControlsPatches._savedControlsState.Value;
-
-            // 恢复 Vizzy 设置的值
-            __instance.Controls.Throttle = state.Throttle;
-            __instance.Controls.Pitch = state.Pitch;
-            __instance.Controls.Roll = state.Roll;
-            __instance.Controls.Yaw = state.Yaw;
-            __instance.Controls.Brake = state.Brake;
-            __instance.Controls.TranslateUp = state.TranslateUp;
-            __instance.Controls.TranslateRight = state.TranslateRight;
-            __instance.Controls.TranslateForward = state.TranslateForward;
-            __instance.Controls.Slider1 = state.Slider1;
-            __instance.Controls.Slider2 = state.Slider2;
-            __instance.Controls.Slider3 = state.Slider3;
-            __instance.Controls.Slider4 = state.Slider4;
-
-            // 清除状态
-            ControlsPatches._savedControlsState = null;
-        }
-    }
-
-    // 用于在 Patch 之间传递状态的辅助类
-    internal struct CraftControlsState
-    {
-        public float Throttle;
-        public float Pitch;
-        public float Roll;
-        public float Yaw;
-        public float Brake;
-        public float TranslateUp;
-        public float TranslateRight;
-        public float TranslateForward;
-        public float Slider1;
-        public float Slider2;
-        public float Slider3;
-        public float Slider4;
     }
 }

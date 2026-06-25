@@ -26,7 +26,6 @@ MonoBehaviour:
   - {fileID: 8976453463338096861, guid: c513a1fbdc9c646eb9a46a643ad4e3a5, type: 3}
   - {fileID: 9106000074157556813, guid: 295fff0508e3a4c2f96eb701d66f2b0c, type: 3}
   - {fileID: 6520087875603149865, guid: 6ab976e4d7b4d4dc9b692473d5b5ac4c, type: 3}
-  - {fileID: 7304565558708299780, guid: 0a0e6b0c1fdd64092881142c8415bb24, type: 3}
   - {fileID: 3787681566466947067, guid: 0becc29e446e64ff49dd803c07b99b0f, type: 3}
   - {fileID: 6777830611588333843, guid: 0e3ceb3310de84c018948528c61a2c2c, type: 3}
   - {fileID: 4767836966991344864, guid: 09e5d9ed6acab4531aaa784c9c90c0f4, type: 3}
@@ -36,6 +35,7 @@ MonoBehaviour:
   - {fileID: 3992600919861206369, guid: 891168f5e95ca4e1baffa51ae769db2f, type: 3}
   - {fileID: 5475505657188212959, guid: e3e1a1929553c41ea8225751a3cd5e53, type: 3}
   - {fileID: 8316980095376536345, guid: cf295200a88e44741b0d8f740be842e0, type: 3}
+  - {fileID: 7304565558708299780, guid: 0a0e6b0c1fdd64092881142c8415bb24, type: 3}
   _steamDescription: 
   _steamLanguage: English
   _steamPreviewPath: 

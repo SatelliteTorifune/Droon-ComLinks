@@ -19,7 +19,6 @@ namespace Assets.Scripts
         public static ModSettings Instance => _instance ?? (_instance = Game.Instance.Settings.ModSettings.GetCategory<ModSettings>());
 
         public BoolSetting BlockControls { get; private set; }
-        public BoolSetting BlockPlayerInputOnly { get; private set; }
         public BoolSetting NeedPower { get; private set; }
         public EnumSetting<DelayModes> Delay { get; private set; }
         public NumericSetting<int> DelayOverride { get; private set; }
@@ -31,10 +30,6 @@ namespace Assets.Scripts
             this.BlockControls = this.CreateBool("Block Controls")
                .SetDescription("If enable, blocks the controls when the craft is out of range and no Drood is onboard (makes the game harder)")
                .SetDefault(true);
-
-            this.BlockPlayerInputOnly = this.CreateBool("Block Player Input Only")
-               .SetDescription("When enabled, only blocks player keyboard/gamepad input but allows Vizzy script inputs to pass through")
-               .SetDefault(false);
 
             this.NeedPower = this.CreateBool("Antenna Require Power")
                .SetDescription("If enable, blocks the connection between two antennas if not there isn't enough power. Also, sending inputs consumes power (makes the game harder)")
