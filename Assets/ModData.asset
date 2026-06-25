@@ -35,6 +35,7 @@ MonoBehaviour:
   - {fileID: 3992600919861206369, guid: 891168f5e95ca4e1baffa51ae769db2f, type: 3}
   - {fileID: 5475505657188212959, guid: e3e1a1929553c41ea8225751a3cd5e53, type: 3}
   - {fileID: 8316980095376536345, guid: cf295200a88e44741b0d8f740be842e0, type: 3}
+  - {fileID: 7304565558708299780, guid: 0a0e6b0c1fdd64092881142c8415bb24, type: 3}
   _steamDescription: 
   _steamLanguage: English
   _steamPreviewPath: 
